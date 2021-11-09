@@ -4727,6 +4727,9 @@ public:
   // Checked C: Perform semantic analysis on a where clause.
   WhereClause *ActOnWhereClause(SourceLocation WhereLoc);
 
+  // Checked C: Performs semantic analysis on an invariant clause.
+  InvariantClause *ActOnInvariantClause(SourceLocation InvariantLoc, Expr *Cond);
+
   // Checked C: Perform semantic analysis on a where clause bounds decl fact.
   BoundsDeclFact *ActOnBoundsDeclFact(IdentifierInfo *Id, Expr *E,
                                       Scope *CurScope, SourceLocation IdLoc,

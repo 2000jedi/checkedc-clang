@@ -519,6 +519,7 @@ void Parser::Initialize() {
   Ident_replacement = nullptr;
 
   if (getLangOpts().CheckedC) {
+    Ident_invariant = &PP.getIdentifierTable().get("invariant");
     Ident_bounds = &PP.getIdentifierTable().get("bounds");
     Ident_byte_count = &PP.getIdentifierTable().get("byte_count");
     Ident_count = &PP.getIdentifierTable().get("count");
@@ -527,6 +528,7 @@ void Parser::Initialize() {
     Ident_rel_align = &PP.getIdentifierTable().get("rel_align");
     Ident_rel_align_value = &PP.getIdentifierTable().get("rel_align_value");
   } else {
+    Ident_invariant = nullptr;
     Ident_bounds = nullptr;
     Ident_byte_count = nullptr;
     Ident_count = nullptr;

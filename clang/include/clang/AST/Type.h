@@ -64,6 +64,7 @@ class TagDecl;
 class TemplateParameterList;
 class Type;
 class TypeSourceInfo;
+class InvariantClause;
 
 enum {
   TypeAlignmentInBits = 4,
@@ -1486,14 +1487,15 @@ enum class CheckedArrayKind {
 class BoundsAnnotations {
   BoundsExpr *Bounds;
   InteropTypeExpr *InteropType;
+  InvariantClause *IClause;
 
 public:
-  BoundsAnnotations() : Bounds(nullptr), InteropType(nullptr) {}
+  BoundsAnnotations() : Bounds(nullptr), InteropType(nullptr), IClause(nullptr) {}
 
-  BoundsAnnotations(BoundsExpr *B) : Bounds(B), InteropType(nullptr) {}
+  BoundsAnnotations(BoundsExpr *B) : Bounds(B), InteropType(nullptr), IClause(nullptr) {}
 
   BoundsAnnotations(BoundsExpr *B, InteropTypeExpr *IT) :
-    Bounds(B), InteropType(IT) {}
+    Bounds(B), InteropType(IT), IClause(nullptr) {}
 
   BoundsExpr *getBoundsExpr() const {
     return Bounds;
@@ -1514,6 +1516,9 @@ public:
   bool IsEmpty() const {
     return Bounds == nullptr && InteropType == nullptr;
   }
+
+  void setInvariant(InvariantClause *IC) { IClause = IC; }
+  InvariantClause *getInvariant(void) { return IClause; }
 
   /// \brief Always write data for individual elements.
   void Profile(llvm::FoldingSetNodeID &ID, const ASTContext &Ctx) const;

@@ -2734,3 +2734,34 @@ WhereClause *Parser::ParseWhereClauseHelper() {
     return nullptr;
   return WClause;
 }
+
+InvariantClause *Parser::ParseInvariantClause() {
+  SourceLocation Loc = Tok.getLocation();
+
+  // Consume the "invariant" identifier.
+  if (ExpectAndConsume(tok::identifier)) {
+    SkipUntil(tok::semi, StopBeforeMatch);
+    return nullptr;
+  }
+
+  // Expect Left-Parenthesis
+  if (Tok.isNot(tok::l_paren)) {
+    Diag(Tok, diag::err_expected_lparen_after) << "invariant";
+    SkipUntil(tok::semi);
+    return nullptr;
+  }
+
+  // Parse Condition
+  Sema::ConditionResult Cond;
+  SourceLocation LParen;
+  SourceLocation RParen;
+  if (ParseParenExprOrCondition(nullptr, Cond, Loc,
+                                Sema::ConditionKind::Boolean, &LParen, &RParen))
+    return nullptr;
+
+  if (Cond.isInvalid())
+    return nullptr;
+
+  InvariantClause *IClause = Actions.ActOnInvariantClause(Loc, Cond.get().second);
+  return IClause;
+}

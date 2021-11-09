@@ -4586,6 +4586,10 @@ WhereClause *Sema::ActOnWhereClause(SourceLocation WhereLoc) {
   return new (Context) WhereClause(WhereLoc);
 }
 
+InvariantClause *Sema::ActOnInvariantClause(SourceLocation InvariantLoc, Expr *Cond) {
+  return new (Context) InvariantClause(InvariantLoc, Cond);
+}
+
 BoundsDeclFact
 *Sema::ActOnBoundsDeclFact(IdentifierInfo *Id, Expr *E,
                            Scope *CurScope,

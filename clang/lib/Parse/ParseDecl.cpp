@@ -7032,7 +7032,8 @@ void Parser::ParseFunctionDeclarator(Declarator &D,
   if (getLangOpts().CheckedC && Tok.is(tok::colon)) {
     const Token &NextTok = GetLookAheadToken(1);
     if (StartsBoundsExpression(NextTok) ||
-      StartsInteropTypeAnnotation(NextTok)) {
+      StartsInteropTypeAnnotation(NextTok) ||
+      CheckedInvariantExpression(NextTok)) {
       BoundsColonLoc = Tok.getLocation();
       ConsumeToken();
       Actions.SetDeferredBoundsCallBack(this, ParseBoundsCallback);

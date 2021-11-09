@@ -3483,6 +3483,14 @@ void Parser::ParseBlockId(SourceLocation CaretLoc) {
   Actions.ActOnBlockArguments(CaretLoc, DeclaratorInfo, getCurScope());
 }
 
+bool Parser::CheckedInvariantExpression(const Token &T) {
+  if (T.getKind() == tok::identifier) {
+    IdentifierInfo *Ident = T.getIdentifierInfo();
+    return (Ident == Ident_invariant);
+  }
+  return false;
+}
+
 bool Parser::StartsBoundsExpression(const Token &T) {
   if (T.getKind() == tok::identifier) {
     IdentifierInfo *Ident = T.getIdentifierInfo();
@@ -3576,7 +3584,8 @@ bool Parser::ParseBoundsAnnotations(const Declarator &D,
 
   while (StartsBoundsExpression(Tok) ||
          StartsInteropTypeAnnotation(Tok) ||
-         StartsWhereClause(Tok)) {
+         StartsWhereClause(Tok) ||
+         CheckedInvariantExpression(Tok)) {
     parsedSomething = true;
     if (StartsBoundsExpression(Tok)) {
       if (DeferredToks) {
@@ -3646,6 +3655,13 @@ bool Parser::ParseBoundsAnnotations(const Declarator &D,
       // Else parse any where clauses that we had previously deferred.
       else
         Error = ParseWhereClauseOnDecl(ThisDecl);
+    } else if (CheckedInvariantExpression(Tok)) {
+      InvariantClause *IClause = ParseInvariantClause();
+      if (!IClause) {
+        Diag(Tok, diag::err_invalid_decl_invariant);
+        Error = true;
+      }
+      Result.setInvariant(IClause);
     }
   }
 

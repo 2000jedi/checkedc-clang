@@ -170,6 +170,9 @@ class Parser : public CodeCompletionHandler {
   /// and "any" are likely to collide.  Others are unlikely to collide, but we make
   /// them contextual for consistency.
 
+  /// \brief Identifier for "invariant".
+  IdentifierInfo *Ident_invariant;
+
   /// \brief Identifier for "bounds".
   IdentifierInfo *Ident_bounds;
 
@@ -2059,6 +2062,11 @@ private:
       llvm::function_ref<void(const Designation &)> CodeCompleteCB);
 
   //===--------------------------------------------------------------------===//
+  // Checked C Invariant Expression
+
+  /// \brief Return true if this token can start a bounds expression.
+  bool CheckedInvariantExpression(const Token &Tok);
+
   // Checked C Expressions
 
   /// \brief Return true if this token can start a bounds expression.
@@ -2129,6 +2137,9 @@ private:
 
   /// Parse a Checked C where clause fact.
   WhereClauseFact *ParseWhereClauseFact();
+
+  /// Parse a Checked C Invariant Extension clause
+  InvariantClause *ParseInvariantClause();
 
   /// Parse a where clause occurring on a declaration.
   /// Returns false on error, true otherwise.

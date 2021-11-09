@@ -1575,4 +1575,7 @@ def err_expected_expr_in_where_clause : Error<
 def err_invalid_decl_where_clause : Error<
   "where clause on invalid decl">;
 
+def err_invalid_decl_invariant : Error<
+  "invariant on invalid decl">;
+
 } // end of Parser diagnostics

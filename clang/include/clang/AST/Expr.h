@@ -7339,6 +7339,18 @@ public:
   static bool classof(const WhereClause *) { return true; }
 };
 
+/// \brief Represents an invariant clause.
+class InvariantClause {
+private:
+  SourceLocation Loc;
+  Expr *Cond;
+
+public:
+  InvariantClause(SourceLocation Loc, Expr *Cond) : Loc(Loc), Cond(Cond) {}
+
+  static bool classof(const InvariantClause *) { return true; }
+};
+
 } // end namespace clang
 
 #endif // LLVM_CLANG_AST_EXPR_H
