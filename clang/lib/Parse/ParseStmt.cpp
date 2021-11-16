@@ -1305,11 +1305,15 @@ bool Parser::ParseParenExprOrCondition(StmtResult *InitStmt,
   // Check for extraneous ')'s to catch things like "if (foo())) {".  We know
   // that all callers are looking for a statement after the condition, so ")"
   // isn't valid.
+
+  // YY: this is removed temporarily through invariant clause
+  #if 0
   while (Tok.is(tok::r_paren)) {
     Diag(Tok, diag::err_extraneous_rparen_in_condition)
       << FixItHint::CreateRemoval(Tok.getLocation());
     ConsumeParen();
   }
+  #endif
 
   return false;
 }
@@ -2736,13 +2740,17 @@ WhereClause *Parser::ParseWhereClauseHelper() {
 }
 
 InvariantClause *Parser::ParseInvariantClause() {
-  SourceLocation Loc = Tok.getLocation();
-
   // Consume the "invariant" identifier.
-  if (ExpectAndConsume(tok::identifier)) {
+  tok::TokenKind TokKind = Tok.getKind();
+  if (TokKind != tok::identifier)
+    return nullptr;
+    
+  IdentifierInfo *Ident = Tok.getIdentifierInfo();
+  if (Ident != Ident_invariant) {
     SkipUntil(tok::semi, StopBeforeMatch);
     return nullptr;
   }
+  ConsumeToken();
 
   // Expect Left-Parenthesis
   if (Tok.isNot(tok::l_paren)) {
@@ -2753,10 +2761,8 @@ InvariantClause *Parser::ParseInvariantClause() {
 
   // Parse Condition
   Sema::ConditionResult Cond;
-  SourceLocation LParen;
-  SourceLocation RParen;
-  if (ParseParenExprOrCondition(nullptr, Cond, Loc,
-                                Sema::ConditionKind::Boolean, &LParen, &RParen))
+  SourceLocation Loc = Tok.getLocation();
+  if (ParseParenExprOrCondition(nullptr, Cond, Loc, Sema::ConditionKind::Boolean))
     return nullptr;
 
   if (Cond.isInvalid())
