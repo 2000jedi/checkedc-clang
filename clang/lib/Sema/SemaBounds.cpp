@@ -4940,6 +4940,7 @@ namespace {
         }
       }
 
+#if 0
       // Adjust ObservedBounds to account for any uses of LValue in the bounds.
       for (auto const &Pair : State.ObservedBounds) {
         const AbstractSet *A = Pair.first;
@@ -4961,6 +4962,7 @@ namespace {
         if (AdjustedBounds != Bounds)
           State.BlameAssignments[A] = E;
       }
+#endif
 
       // Adjust SrcBounds to account for any uses of LValue.
       BoundsExpr *AdjustedSrcBounds = nullptr;
