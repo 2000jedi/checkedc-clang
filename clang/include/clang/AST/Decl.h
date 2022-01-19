@@ -713,7 +713,7 @@ protected:
 
   BoundsAnnotations *Annotations;
   BoundsExpr *NormalizedBounds;
-  Expr *InvariantExpr;
+  InvariantClause *InvariantExpr;
 public:
   friend class ASTDeclReader;
   friend class ASTDeclWriter;
@@ -862,15 +862,15 @@ public:
     NormalizedBounds = E;
   }
 
-  Expr *getInvariant() {
+  InvariantClause *getInvariant() {
     return InvariantExpr;
   }
 
   void setInvariant() const {
-    const_cast<DeclaratorDecl *>(this)->setInvariant(Annotations->getInvariant()->get());
+    const_cast<DeclaratorDecl *>(this)->setInvariant(Annotations->getInvariant());
   }
 
-  void setInvariant(Expr *E) {
+  void setInvariant(InvariantClause *E) {
     InvariantExpr = E;
   }
 
