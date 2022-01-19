@@ -6751,6 +6751,7 @@ BoundsExpr *Sema::NormalizeBounds(const VarDecl *D) {
 
   // Attach the normalized bounds to D to avoid recomputing them.
   D->setNormalizedBounds(ExpandedBounds);
+  D->setInvariant();
   return ExpandedBounds;
 }
 

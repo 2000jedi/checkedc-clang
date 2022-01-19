@@ -7349,6 +7349,7 @@ public:
   InvariantClause(SourceLocation Loc, Expr *Cond) : Loc(Loc), Cond(Cond) {}
 
   static bool classof(const InvariantClause *) { return true; }
+  Expr *get() {return Cond;}
 };
 
 } // end namespace clang

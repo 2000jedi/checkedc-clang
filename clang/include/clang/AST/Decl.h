@@ -713,6 +713,7 @@ protected:
 
   BoundsAnnotations *Annotations;
   BoundsExpr *NormalizedBounds;
+  Expr *InvariantExpr;
 public:
   friend class ASTDeclReader;
   friend class ASTDeclWriter;
@@ -859,6 +860,18 @@ public:
   // range bounds expression.
   void setNormalizedBounds(BoundsExpr *E) {
     NormalizedBounds = E;
+  }
+
+  Expr *getInvariant() {
+    return InvariantExpr;
+  }
+
+  void setInvariant() const {
+    const_cast<DeclaratorDecl *>(this)->setInvariant(Annotations->getInvariant()->get());
+  }
+
+  void setInvariant(Expr *E) {
+    InvariantExpr = E;
   }
 
   /// \brief The Checked C interop type declared or inferred for this
