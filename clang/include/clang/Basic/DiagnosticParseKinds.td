@@ -1578,4 +1578,7 @@ def err_invalid_decl_where_clause : Error<
 def err_invalid_decl_invariant : Error<
   "invariant on invalid decl">;
 
+def err_typecheck_invariant_expr : Error<
+  "invalid argument type %0 to invariant expression">;
+
 } // end of Parser diagnostics

@@ -1306,14 +1306,11 @@ bool Parser::ParseParenExprOrCondition(StmtResult *InitStmt,
   // that all callers are looking for a statement after the condition, so ")"
   // isn't valid.
 
-  // YY: this is removed temporarily through invariant clause
-  #if 0
   while (Tok.is(tok::r_paren)) {
     Diag(Tok, diag::err_extraneous_rparen_in_condition)
       << FixItHint::CreateRemoval(Tok.getLocation());
     ConsumeParen();
   }
-  #endif
 
   return false;
 }
@@ -2760,14 +2757,31 @@ InvariantClause *Parser::ParseInvariantClause() {
   }
 
   // Parse Condition
+  SourceLocation Loc = Tok.getLocation();
+  BalancedDelimiterTracker T(*this, tok::l_paren);
+  T.consumeOpen();
+  ExprResult CondExpr = ParseExpression();
+  if (CondExpr.isInvalid()) {
+    SkipUntil(tok::semi);
+    return nullptr;
+  }
+  T.consumeClose();
+  /*
   Sema::ConditionResult Cond;
   SourceLocation Loc = Tok.getLocation();
   if (ParseParenExprOrCondition(nullptr, Cond, Loc, Sema::ConditionKind::Boolean))
     return nullptr;
+  */
 
-  if (Cond.isInvalid())
+  // type check expression
+  Expr *ResultExpr = CondExpr.get();
+  QualType ResultType = ResultExpr->getType();
+  if (!ResultType->isIntegerType()) {
+    Diag(ResultExpr->getBeginLoc(), diag::err_typecheck_invariant_expr)
+      << ResultType;
     return nullptr;
+  }
 
-  InvariantClause *IClause = Actions.ActOnInvariantClause(Loc, Cond.get().second);
+  InvariantClause *IClause = Actions.ActOnInvariantClause(Loc, ResultExpr);
   return IClause;
 }
