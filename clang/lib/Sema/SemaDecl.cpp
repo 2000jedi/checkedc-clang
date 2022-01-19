@@ -14948,6 +14948,7 @@ void Sema::ActOnBoundsDecl(DeclaratorDecl *D, BoundsAnnotations Annots,
   if (Ty.isNull())
     return;
 
+  D->setInvariant(Annots.getInvariant());
   VarDecl *VD = dyn_cast<VarDecl>(D);
   BoundsExpr *BoundsExpr = Annots.getBoundsExpr();
   InteropTypeExpr *IType = Annots.getInteropTypeExpr();
