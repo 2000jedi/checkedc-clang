@@ -1885,14 +1885,24 @@ void CodeGenFunction::EmitAutoVarInit(const AutoVarEmission &emission) {
     initializeWhatIsTechnicallyUninitialized(Loc);
     LValue lv = MakeAddrLValue(Loc, type);
     lv.setNonGC(true);
-    return EmitExprAsInit(Init, &D, lv, capturedByInit);
+    EmitExprAsInit(Init, &D, lv, capturedByInit);
+    
+    if (D.getInvariant()) {
+      EmitExplicitDynamicCheck(D.getInvariant()->get());
+    }
+    return;
   }
 
   if (!emission.IsConstantAggregate) {
     // For simple scalar/complex initialization, store the value directly.
     LValue lv = MakeAddrLValue(Loc, type);
     lv.setNonGC(true);
-    return EmitStoreThroughLValue(RValue::get(constant), lv, true);
+    EmitStoreThroughLValue(RValue::get(constant), lv, true);
+    
+    if (D.getInvariant()) {
+      EmitExplicitDynamicCheck(D.getInvariant()->get());
+    }
+    return;
   }
 
   llvm::Type *BP = CGM.Int8Ty->getPointerTo(Loc.getAddressSpace());
@@ -1900,10 +1910,7 @@ void CodeGenFunction::EmitAutoVarInit(const AutoVarEmission &emission) {
       CGM, D, (Loc.getType() == BP) ? Loc : Builder.CreateBitCast(Loc, BP),
       type.isVolatileQualified(), Builder, constant, /*IsAutoInit=*/false);
 
-  if (D.getInvariant()) {
-    EmitExplicitDynamicCheck(D.getInvariant());
   }
-}
 
 /// Emit an expression as an initializer for an object (variable, field, etc.)
 /// at the given location.  The expression is not necessarily the normal
