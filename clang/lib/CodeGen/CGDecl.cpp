@@ -1899,6 +1899,10 @@ void CodeGenFunction::EmitAutoVarInit(const AutoVarEmission &emission) {
   emitStoresForConstant(
       CGM, D, (Loc.getType() == BP) ? Loc : Builder.CreateBitCast(Loc, BP),
       type.isVolatileQualified(), Builder, constant, /*IsAutoInit=*/false);
+
+  if (D.getInvariant()) {
+    EmitExplicitDynamicCheck(D.getInvariant());
+  }
 }
 
 /// Emit an expression as an initializer for an object (variable, field, etc.)

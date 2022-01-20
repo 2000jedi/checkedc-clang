@@ -862,7 +862,7 @@ public:
     NormalizedBounds = E;
   }
 
-  InvariantClause *getInvariant() {
+  InvariantClause *getInvariant() const {
     return InvariantExpr;
   }
 
