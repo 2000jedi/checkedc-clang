@@ -14869,6 +14869,13 @@ static bool checkBoundsDeclWithBoundsExpr(Sema &S, QualType Ty,
     DiagId = IsReturnAnnots ? diag::err_typecheck_non_count_return_bounds
                             : diag::err_typecheck_non_count_bounds_decl;
 
+  if (D->getInvariant() != nullptr) {
+    if (!Ty->isCheckedPointerArrayType()) {
+        DiagId = IsReturnAnnots ? diag::err_typecheck_count_return_bounds
+                                : diag::err_typecheck_count_bounds_decl;
+      }
+  }
+
   if (DiagId) {
     if (!IsReturnAnnots)
       S.Diag(Expr->getBeginLoc(), DiagId) << D;
