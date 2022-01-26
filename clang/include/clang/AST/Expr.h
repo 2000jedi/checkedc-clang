@@ -7344,10 +7344,10 @@ class InvariantClause {
 private:
   SourceLocation Loc;
   Expr *Cond;
+  ArrayRef<DeclRefExpr *> Vars;
 
 public:
-  InvariantClause(SourceLocation Loc, Expr *Cond) : Loc(Loc), Cond(Cond) {}
-
+  InvariantClause(SourceLocation Loc, Expr *Cond, ArrayRef<DeclRefExpr *> Vars) : Loc(Loc), Cond(Cond), Vars(Vars) {}
   static bool classof(const InvariantClause *) { return true; }
   Expr *get() {return Cond;}
   SourceLocation getBeginLoc(void) { return Loc; }

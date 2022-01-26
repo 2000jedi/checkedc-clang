@@ -4586,8 +4586,45 @@ WhereClause *Sema::ActOnWhereClause(SourceLocation WhereLoc) {
   return new (Context) WhereClause(WhereLoc);
 }
 
+void WalkExprFindVar(Expr *E, SmallVector<DeclRefExpr*, 32> *V) {
+    switch (E->getStmtClass()) {
+      case Expr::DeclRefExprClass: {
+        V->push_back(cast<DeclRefExpr>(E));
+        break;
+      }
+      case Expr::BinaryOperatorClass: {
+        BinaryOperator *bo = cast<BinaryOperator>(E);
+        WalkExprFindVar(bo->getLHS(), V);
+        WalkExprFindVar(bo->getRHS(), V);
+        break;
+      }
+      case Expr::ImplicitCastExprClass: {
+        ImplicitCastExpr *ic = cast<ImplicitCastExpr>(E);
+        WalkExprFindVar(ic->getSubExpr(), V);
+        break;
+      }
+      default: {
+        // if (ImplicitCastExpr *ICE = dyn_cast<ImplicitCastExpr>(E)) {
+        //   WalkExprFindVar(ICE->getSubExpr(), V);
+        // }
+        break;
+      }
+    }
+  }
+
 InvariantClause *Sema::ActOnInvariantClause(SourceLocation InvariantLoc, Expr *Cond) {
-  return new (Context) InvariantClause(InvariantLoc, Cond);
+  SmallVector<DeclRefExpr*, 32> vars;
+  WalkExprFindVar(Cond, &vars);
+  
+  
+  clang::LangOptions lo;
+  std::string out_str;
+  llvm::raw_string_ostream outstream(out_str);
+  Cond->printPretty(outstream, NULL, PrintingPolicy(lo));
+  llvm::errs() << "Invariant is: " << out_str.c_str() << '\n';// YY: remove
+  llvm::errs() << "Var Size: " << vars.size() << '\n';
+  
+  return new (Context) InvariantClause(InvariantLoc, Cond, vars);
 }
 
 BoundsDeclFact
