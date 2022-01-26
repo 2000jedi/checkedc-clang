@@ -7350,6 +7350,7 @@ public:
 
   static bool classof(const InvariantClause *) { return true; }
   Expr *get() {return Cond;}
+  SourceLocation getBeginLoc(void) { return Loc; }
 };
 
 } // end namespace clang
