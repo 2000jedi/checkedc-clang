@@ -4590,6 +4590,16 @@ void WalkExprFindVar(Expr *E, SmallVector<DeclRefExpr*, 32> *V) {
     switch (E->getStmtClass()) {
       case Expr::DeclRefExprClass: {
         V->push_back(cast<DeclRefExpr>(E));
+
+        const DeclRefExpr *DRE = cast<DeclRefExpr>(E);
+        const VarDecl *VD = dyn_cast_or_null<VarDecl>(DRE->getDecl());
+
+        clang::LangOptions lo;
+        llvm::errs() << "VarDecl: "
+                     << VD->getNameAsString() << '('
+                     << QualType::getAsString(
+                         VD->getType().split(), PrintingPolicy(lo))
+                     << ")\n";
         break;
       }
       case Expr::BinaryOperatorClass: {
@@ -4603,10 +4613,28 @@ void WalkExprFindVar(Expr *E, SmallVector<DeclRefExpr*, 32> *V) {
         WalkExprFindVar(ic->getSubExpr(), V);
         break;
       }
+      case Expr::UnaryOperatorClass: {
+        UnaryOperator *UO = cast<UnaryOperator>(E);
+        if (UO->getOpcode() == UnaryOperatorKind::UO_Deref) {
+          /* YY: TODO: turn into standard errors */
+          llvm::errs() << "Warning: dereferencing not allowed in invariants\n";
+        }
+        break;
+      }
+      case Expr::MemberExprClass: {
+        llvm::errs() << "Warning: dereferencing not allowed in invariants\n";
+        break;
+      }
+      case Expr::FloatingLiteralClass:
+      case Expr::IntegerLiteralClass: {
+        break;
+      }
       default: {
-        // if (ImplicitCastExpr *ICE = dyn_cast<ImplicitCastExpr>(E)) {
-        //   WalkExprFindVar(ICE->getSubExpr(), V);
-        // }
+        clang::LangOptions lo;
+        std::string out_str;
+        llvm::raw_string_ostream outstream(out_str);
+        E->printPretty(outstream, NULL, PrintingPolicy(lo));
+        llvm::errs() << "Unprocessed Stmt: " << out_str.c_str() << '\n';
         break;
       }
     }
@@ -4615,15 +4643,14 @@ void WalkExprFindVar(Expr *E, SmallVector<DeclRefExpr*, 32> *V) {
 InvariantClause *Sema::ActOnInvariantClause(SourceLocation InvariantLoc, Expr *Cond) {
   SmallVector<DeclRefExpr*, 32> vars;
   WalkExprFindVar(Cond, &vars);
-  
-  
+
   clang::LangOptions lo;
   std::string out_str;
   llvm::raw_string_ostream outstream(out_str);
   Cond->printPretty(outstream, NULL, PrintingPolicy(lo));
   llvm::errs() << "Invariant is: " << out_str.c_str() << '\n';// YY: remove
   llvm::errs() << "Var Size: " << vars.size() << '\n';
-  
+
   return new (Context) InvariantClause(InvariantLoc, Cond, vars);
 }
 
