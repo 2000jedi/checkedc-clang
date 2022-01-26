@@ -4651,7 +4651,17 @@ InvariantClause *Sema::ActOnInvariantClause(SourceLocation InvariantLoc, Expr *C
   llvm::errs() << "Invariant is: " << out_str.c_str() << '\n';// YY: remove
   llvm::errs() << "Var Size: " << vars.size() << '\n';
 
-  return new (Context) InvariantClause(InvariantLoc, Cond, vars);
+  InvariantClause *IC = new (Context) InvariantClause(InvariantLoc, Cond, vars);
+
+  for (auto var: vars) {
+    VarDecl *VD = dyn_cast_or_null<VarDecl>(var->getDecl());
+    DeclaratorDecl *DD = cast<DeclaratorDecl>(VD);
+    if (! DD->getInvariant()) {
+      DD->setInvariant(IC);
+    }
+  }
+
+  return IC;
 }
 
 BoundsDeclFact
