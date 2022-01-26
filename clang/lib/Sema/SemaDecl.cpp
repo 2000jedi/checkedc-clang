@@ -14869,13 +14869,6 @@ static bool checkBoundsDeclWithBoundsExpr(Sema &S, QualType Ty,
     DiagId = IsReturnAnnots ? diag::err_typecheck_non_count_return_bounds
                             : diag::err_typecheck_non_count_bounds_decl;
 
-  if (D->getInvariant() != nullptr) {
-    if (!Ty->isCheckedPointerArrayType()) {
-        DiagId = IsReturnAnnots ? diag::err_typecheck_count_return_bounds
-                                : diag::err_typecheck_count_bounds_decl;
-      }
-  }
-
   if (DiagId) {
     if (!IsReturnAnnots)
       S.Diag(Expr->getBeginLoc(), DiagId) << D;
@@ -14956,6 +14949,12 @@ void Sema::ActOnBoundsDecl(DeclaratorDecl *D, BoundsAnnotations Annots,
     return;
 
   D->setInvariant(Annots.getInvariant());
+  if (D->getInvariant()) {
+    if (!Ty->isCheckedPointerArrayType()) {
+      /* Invariants on CheckedPointerArrayTypes only */
+      Diag(D->getBeginLoc(), diag::err_typecheck_count_bounds_decl) << D;
+    }
+  }
   VarDecl *VD = dyn_cast<VarDecl>(D);
   BoundsExpr *BoundsExpr = Annots.getBoundsExpr();
   InteropTypeExpr *IType = Annots.getInteropTypeExpr();
