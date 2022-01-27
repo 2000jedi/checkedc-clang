@@ -4586,7 +4586,7 @@ WhereClause *Sema::ActOnWhereClause(SourceLocation WhereLoc) {
   return new (Context) WhereClause(WhereLoc);
 }
 
-void WalkExprFindVar(Expr *E, SmallVector<VarDecl*, 32> *V) {
+void Sema::WalkExprFindVar(Expr *E, SmallVector<VarDecl*, 32> *V) {
     switch (E->getStmtClass()) {
       case Expr::DeclRefExprClass: {
         const DeclRefExpr *DRE = cast<DeclRefExpr>(E);
@@ -4617,13 +4617,12 @@ void WalkExprFindVar(Expr *E, SmallVector<VarDecl*, 32> *V) {
       case Expr::UnaryOperatorClass: {
         UnaryOperator *UO = cast<UnaryOperator>(E);
         if (UO->getOpcode() == UnaryOperatorKind::UO_Deref) {
-          /* YY: TODO: turn into standard errors */
-          llvm::errs() << "Warning: dereferencing not allowed in invariants\n";
+           Diag(E->getBeginLoc(), diag::err_deref_in_invariants);
         }
         break;
       }
       case Expr::MemberExprClass: {
-        llvm::errs() << "Warning: dereferencing not allowed in invariants\n";
+        Diag(E->getBeginLoc(), diag::err_member_in_invariants);
         break;
       }
       case Expr::FloatingLiteralClass:
@@ -4645,12 +4644,14 @@ InvariantClause *Sema::ActOnInvariantClause(SourceLocation InvariantLoc, Expr *C
   SmallVector<VarDecl*, 32> vars;
   WalkExprFindVar(Cond, &vars);
 
+#if 0
   clang::LangOptions lo;
   std::string out_str;
   llvm::raw_string_ostream outstream(out_str);
   Cond->printPretty(outstream, NULL, PrintingPolicy(lo));
   llvm::errs() << "Invariant is: " << out_str.c_str() << '\n';// YY: remove
   llvm::errs() << "Var Size: " << vars.size() << '\n';
+#endif
 
   InvariantClause *IC = new (Context) InvariantClause(InvariantLoc, Cond, vars);
 

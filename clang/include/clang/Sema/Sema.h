@@ -4728,6 +4728,7 @@ public:
   WhereClause *ActOnWhereClause(SourceLocation WhereLoc);
 
   // Checked C: Performs semantic analysis on an invariant clause.
+  void WalkExprFindVar(Expr *E, SmallVector<VarDecl*, 32> *V);
   InvariantClause *ActOnInvariantClause(SourceLocation InvariantLoc, Expr *Cond);
 
   // Checked C: Perform semantic analysis on a where clause bounds decl fact.
@@ -5984,6 +5985,7 @@ public:
   void CheckFunctionBodyBoundsDecls(FunctionDecl *FD, Stmt *Body);
 
   /// PropagateFunctionBodyInvariants - propagate invariants to assignments.
+  void PropagateStmtInvariants(Stmt *E);
   void PropagateFunctionBodyInvariants(FunctionDecl *FD, Stmt *Body);
 
   /// CheckTopLevelBoundsDecls - check bounds declarations for variable declarations

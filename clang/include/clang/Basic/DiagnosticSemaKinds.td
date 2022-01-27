@@ -11472,6 +11472,14 @@ def err_bounds_type_annotation_lost_checking : Error<
   def err_address_of_member_with_bounds : Error<
     "cannot take address of member with bounds">;
 
+  def err_address_of_var_with_invariants : Error<
+    "cannot take address of variable %0 with invariants">;
+
+  def err_deref_in_invariants : Error<
+    "dereference not allowed in invariant expression">;
+  def err_member_in_invariants : Error<
+    "member operator not allowed in invariant expression">;
+
   def note_var_bounds : Note<"bounds declared here">;
   def note_member_bounds : Note<"member bounds declared here">;
 

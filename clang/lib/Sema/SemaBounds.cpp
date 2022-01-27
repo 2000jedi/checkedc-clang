@@ -49,6 +49,7 @@
 #include "clang/Sema/BoundsUtils.h"
 #include "clang/Sema/BoundsWideningAnalysis.h"
 #include "clang/Sema/CheckedCAnalysesPrepass.h"
+#include "clang/Sema/SemaDiagnostic.h"
 #include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/ADT/SmallPtrSet.h"
@@ -6571,7 +6572,7 @@ void Sema::CheckFunctionBodyBoundsDecls(FunctionDecl *FD, Stmt *Body) {
 #endif
 }
 
-void PropagateStmtInvariants(Stmt *E) {
+void Sema::PropagateStmtInvariants(Stmt *E) {
   if (E == nullptr) return;
 
   switch (E->getStmtClass()) {
@@ -6617,7 +6618,8 @@ void PropagateStmtInvariants(Stmt *E) {
         if (VarDecl *VD = dyn_cast_or_null<VarDecl>(DRE->getDecl())) {
           if (VD->getInvariant() && (! VD->getType()->isCheckedPointerArrayType())) {
             if (UO->getOpcode() == UnaryOperatorKind::UO_AddrOf) {
-              llvm::errs() << "warning: & of invariant variable invalid\n";
+              Diag(E->getBeginLoc(), diag::err_address_of_var_with_invariants) <<
+                VD << E->getSourceRange();
               return;
             }
             if (UO->isArithmeticOp()) {
@@ -6659,6 +6661,7 @@ void PropagateStmtInvariants(Stmt *E) {
       PropagateStmtInvariants(SS->getCond());
       PropagateStmtInvariants(SS->getInit());
       PropagateStmtInvariants(SS->getBody());
+      break;
     }
     case Stmt::CaseStmtClass: {
       CaseStmt *CS = cast<CaseStmt>(E);
@@ -6727,8 +6730,10 @@ void PropagateStmtInvariants(Stmt *E) {
 }
 
 void Sema::PropagateFunctionBodyInvariants(FunctionDecl *FD, Stmt *Body) {
+#if 0
   llvm::errs() << "Processing Function Invariant\n";
   FD->dump();
+#endif
   PropagateStmtInvariants(Body);
 }
 
