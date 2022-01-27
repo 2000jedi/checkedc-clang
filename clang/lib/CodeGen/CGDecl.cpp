@@ -1887,9 +1887,9 @@ void CodeGenFunction::EmitAutoVarInit(const AutoVarEmission &emission) {
     lv.setNonGC(true);
     EmitExprAsInit(Init, &D, lv, capturedByInit);
     
-    // if (D.getInvariant()) {
-    //   EmitExplicitDynamicCheck(D.getInvariant()->get());
-    // }  YY: remove
+    if (D.getInvariant()) {
+      EmitExplicitDynamicCheck(D.getInvariant()->get());
+    }
     return;
   }
 
@@ -1899,9 +1899,9 @@ void CodeGenFunction::EmitAutoVarInit(const AutoVarEmission &emission) {
     lv.setNonGC(true);
     EmitStoreThroughLValue(RValue::get(constant), lv, true);
     
-    // if (D.getInvariant()) {
-    //   EmitExplicitDynamicCheck(D.getInvariant()->get());
-    // }
+    if (D.getInvariant()) {
+      EmitExplicitDynamicCheck(D.getInvariant()->get());
+    }
     return;
   }
 

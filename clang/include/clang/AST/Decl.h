@@ -915,7 +915,6 @@ public:
   void setBoundsAnnotations(ASTContext &Context, BoundsAnnotations BA) {
     setBoundsExpr(Context, BA.getBoundsExpr());
     setInteropTypeExpr(Context, BA.getInteropTypeExpr());
-    // this->InvariantExpr = BA.getInvariant();  YY: remove
   }
 
   BoundsAnnotations getBoundsAnnotations() const {
