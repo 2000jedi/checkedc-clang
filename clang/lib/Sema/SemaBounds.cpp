@@ -6628,6 +6628,18 @@ void PropagateStmtInvariants(Stmt *E) {
       }
       break;
     }
+    case Expr::CallExprClass: {
+      CallExpr *CE = cast<CallExpr>(E);
+      for (auto I=CE->arg_begin(), ED=CE->arg_end(); I != ED; I++) {
+        PropagateStmtInvariants(*I);
+      }
+      break;
+    }
+    case Expr::ParenExprClass: {
+      ParenExpr *PE = cast<ParenExpr>(E);
+      PropagateStmtInvariants(PE->getSubExpr());
+      break;
+    }
     case Stmt::CompoundStmtClass: {
       CompoundStmt *Scope = cast<CompoundStmt>(E);
       for (auto I = Scope->body_rbegin(), ED = Scope->body_rend(); I != ED; ++I) {
@@ -6640,6 +6652,37 @@ void PropagateStmtInvariants(Stmt *E) {
       PropagateStmtInvariants(IS->getCond());
       PropagateStmtInvariants(IS->getThen());
       PropagateStmtInvariants(IS->getElse());
+      break;
+    }
+    case Stmt::SwitchStmtClass: {
+      SwitchStmt *SS = cast<SwitchStmt>(E);
+      PropagateStmtInvariants(SS->getCond());
+      PropagateStmtInvariants(SS->getInit());
+      PropagateStmtInvariants(SS->getBody());
+    }
+    case Stmt::CaseStmtClass: {
+      CaseStmt *CS = cast<CaseStmt>(E);
+      PropagateStmtInvariants(CS->getSubStmt());
+      break;
+    }
+    case Stmt::WhileStmtClass: {
+      WhileStmt *WS = cast<WhileStmt>(E);
+      PropagateStmtInvariants(WS->getCond());
+      PropagateStmtInvariants(WS->getBody());
+      break;
+    }
+    case Stmt::ForStmtClass: {
+      ForStmt *FS = cast<ForStmt>(E);
+      PropagateStmtInvariants(FS->getInit());
+      PropagateStmtInvariants(FS->getCond());
+      PropagateStmtInvariants(FS->getInc());
+      PropagateStmtInvariants(FS->getBody());
+      break;
+    }
+    case Stmt::DoStmtClass: {
+      DoStmt *DS = cast<DoStmt>(E);
+      PropagateStmtInvariants(DS->getCond());
+      PropagateStmtInvariants(DS->getBody());
       break;
     }
     case Stmt::DeclStmtClass: {
@@ -6663,6 +6706,9 @@ void PropagateStmtInvariants(Stmt *E) {
     case Stmt::ReturnStmtClass:
     case Expr::DeclRefExprClass:
     case Expr::ImplicitCastExprClass:
+    case Expr::CompoundLiteralExprClass:
+    case Expr::StringLiteralClass:
+    case Expr::CharacterLiteralClass:
     case Expr::FloatingLiteralClass:
     case Expr::IntegerLiteralClass: {
       break;
