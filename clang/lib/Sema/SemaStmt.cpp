@@ -4586,14 +4586,12 @@ WhereClause *Sema::ActOnWhereClause(SourceLocation WhereLoc) {
   return new (Context) WhereClause(WhereLoc);
 }
 
-void WalkExprFindVar(Expr *E, SmallVector<DeclRefExpr*, 32> *V) {
+void WalkExprFindVar(Expr *E, SmallVector<VarDecl*, 32> *V) {
     switch (E->getStmtClass()) {
       case Expr::DeclRefExprClass: {
-        V->push_back(cast<DeclRefExpr>(E));
-
         const DeclRefExpr *DRE = cast<DeclRefExpr>(E);
         if (const VarDecl *VD = dyn_cast_or_null<VarDecl>(DRE->getDecl())) {
-
+          V->push_back(const_cast<VarDecl *>(VD));
           clang::LangOptions lo;
           llvm::errs() << "VarDecl: "
                        << VD->getNameAsString() << '('
@@ -4644,7 +4642,7 @@ void WalkExprFindVar(Expr *E, SmallVector<DeclRefExpr*, 32> *V) {
   }
 
 InvariantClause *Sema::ActOnInvariantClause(SourceLocation InvariantLoc, Expr *Cond) {
-  SmallVector<DeclRefExpr*, 32> vars;
+  SmallVector<VarDecl*, 32> vars;
   WalkExprFindVar(Cond, &vars);
 
   clang::LangOptions lo;
@@ -4656,8 +4654,7 @@ InvariantClause *Sema::ActOnInvariantClause(SourceLocation InvariantLoc, Expr *C
 
   InvariantClause *IC = new (Context) InvariantClause(InvariantLoc, Cond, vars);
 
-  for (auto var: vars) {
-    VarDecl *VD = dyn_cast_or_null<VarDecl>(var->getDecl());
+  for (auto VD: vars) {
     DeclaratorDecl *DD = cast<DeclaratorDecl>(VD);
     if (! DD->getInvariant()) {
       DD->setInvariant(IC);

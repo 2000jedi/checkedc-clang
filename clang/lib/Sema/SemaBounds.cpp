@@ -6595,11 +6595,14 @@ void PropagateStmtInvariants(Stmt *E) {
             }
           }
         } else {
+          PropagateStmtInvariants(BO->getLHS());
+#if 0
           clang::LangOptions lo;                                            
           std::string out_str;
           llvm::raw_string_ostream outstream(out_str);
           BO->getLHS()->printPretty(outstream, NULL, PrintingPolicy(lo));
           llvm::errs() << "Unprocessed Assignment LHS: " << out_str.c_str() << '\n';
+#endif
           break;
         }
       } else {
@@ -6612,7 +6615,7 @@ void PropagateStmtInvariants(Stmt *E) {
       UnaryOperator *UO = cast<UnaryOperator>(E);
       if (DeclRefExpr *DRE = dyn_cast_or_null<DeclRefExpr>(UO->getSubExpr())) {
         if (VarDecl *VD = dyn_cast_or_null<VarDecl>(DRE->getDecl())) {
-          if (VD->getInvariant()) {
+          if (VD->getInvariant() && (! VD->getType()->isCheckedPointerArrayType())) {
             if (UO->getOpcode() == UnaryOperatorKind::UO_AddrOf) {
               llvm::errs() << "warning: & of invariant variable invalid\n";
               return;
