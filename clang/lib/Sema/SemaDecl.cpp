@@ -15637,8 +15637,10 @@ Decl *Sema::ActOnFinishFunctionBody(Decl *dcl, Stmt *Body,
   // meant to pop the context added in ActOnStartOfFunctionDef().
   ExitFunctionBodyRAII ExitRAII(*this, isLambdaCallOperator(FD));
 
-  if (getLangOpts().CheckedC && !getLangOpts()._3C)
+  if (getLangOpts().CheckedC && !getLangOpts()._3C) {
     CheckFunctionBodyBoundsDecls(FD, Body);
+    PropagateFunctionBodyInvariants(FD, Body);
+  }
 
   if (FD) {
     FD->setBody(Body);

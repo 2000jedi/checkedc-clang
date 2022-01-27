@@ -5983,6 +5983,9 @@ public:
   /// body.
   void CheckFunctionBodyBoundsDecls(FunctionDecl *FD, Stmt *Body);
 
+  /// PropagateFunctionBodyInvariants - propagate invariants to assignments.
+  void PropagateFunctionBodyInvariants(FunctionDecl *FD, Stmt *Body);
+
   /// CheckTopLevelBoundsDecls - check bounds declarations for variable declarations
   /// not within a function body.
   void CheckTopLevelBoundsDecls(VarDecl *VD);

@@ -2367,6 +2367,17 @@ public:
   void setBoundsCheckKind(BoundsCheckKind Kind) {
     UnaryOperatorBits.BoundsCheckKind = Kind;
   }
+
+private:
+  InvariantClause *InvariantExpr;
+public:
+  void setInvariant(InvariantClause *IE) {
+    InvariantExpr = IE;
+  }
+  void setInvariant(InvariantClause *IE) const {
+    const_cast<UnaryOperator *>(this)->setInvariant(IE);
+  }
+  InvariantClause *getInvariant(void) { return InvariantExpr; }
 };
 
 /// Helper class for OffsetOfExpr.
@@ -4435,6 +4446,17 @@ protected:
   static unsigned sizeOfTrailingObjects(bool HasFPFeatures) {
     return HasFPFeatures * sizeof(FPOptionsOverride);
   }
+
+  private:
+  InvariantClause *InvariantExpr;
+public:
+  void setInvariant(InvariantClause *IE) {
+    InvariantExpr = IE;
+  }
+  void setInvariant(InvariantClause *IE) const { 
+    const_cast<BinaryOperator *>(this)->setInvariant(IE); 
+  }
+  InvariantClause *getInvariant(void) { return InvariantExpr; }
 };
 
 /// CompoundAssignOperator - For compound assignments (e.g. +=), we keep

@@ -4659,6 +4659,9 @@ InvariantClause *Sema::ActOnInvariantClause(SourceLocation InvariantLoc, Expr *C
     if (! DD->getInvariant()) {
       DD->setInvariant(IC);
     }
+    if (FunctionDecl *FD = dyn_cast_or_null<FunctionDecl>(VD->getParentFunctionOrMethod())) {
+      FD->addInvariantVar(VD);
+    }
   }
 
   return IC;

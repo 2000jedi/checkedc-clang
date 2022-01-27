@@ -458,7 +458,7 @@ protected:
 
     unsigned : NumExprBits;
 
-    unsigned BoundsCheckKind : NumBoundsCheckKindBits;
+    // unsigned BoundsCheckKind : NumBoundsCheckKindBits;
     SourceLocation RBracketLoc;
   };
 

@@ -49,6 +49,7 @@
 #include "clang/Sema/BoundsUtils.h"
 #include "clang/Sema/BoundsWideningAnalysis.h"
 #include "clang/Sema/CheckedCAnalysesPrepass.h"
+#include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallString.h"
@@ -128,7 +129,7 @@ namespace {
 
 bool Sema::AbstractForFunctionType(
   BoundsAnnotations &Annots,
-  ArrayRef<DeclaratorChunk::ParamInfo> Params) {  
+  ArrayRef<DeclaratorChunk::ParamInfo> Params) {
 
   BoundsExpr *Expr = Annots.getBoundsExpr();
   // If there is no bounds expression, the itype does not change
@@ -394,35 +395,35 @@ namespace {
 }
 #endif
 
-// Convert all temporary bindings in an expression to uses of the values	
-// produced by a binding.   This should be done for bounds expressions that	
-// are used in runtime checks.  That way we don't try to recompute a	
-// temporary multiple times in an expression.	
-namespace {	
-  class PruneTemporaryHelper : public TreeTransform<PruneTemporaryHelper> {	
-    typedef TreeTransform<PruneTemporaryHelper> BaseTransform;	
+// Convert all temporary bindings in an expression to uses of the values
+// produced by a binding.   This should be done for bounds expressions that
+// are used in runtime checks.  That way we don't try to recompute a
+// temporary multiple times in an expression.
+namespace {
+  class PruneTemporaryHelper : public TreeTransform<PruneTemporaryHelper> {
+    typedef TreeTransform<PruneTemporaryHelper> BaseTransform;
 
 
-  public:	
-    PruneTemporaryHelper(Sema &SemaRef) :	
-      BaseTransform(SemaRef) { }	
+  public:
+    PruneTemporaryHelper(Sema &SemaRef) :
+      BaseTransform(SemaRef) { }
 
-    ExprResult TransformCHKCBindTemporaryExpr(CHKCBindTemporaryExpr *E) {	
-      return new (SemaRef.Context) BoundsValueExpr(SourceLocation(), E);	
-    }	
-  };	
+    ExprResult TransformCHKCBindTemporaryExpr(CHKCBindTemporaryExpr *E) {
+      return new (SemaRef.Context) BoundsValueExpr(SourceLocation(), E);
+    }
+  };
 
-  Expr *PruneTemporaryBindings(Sema &SemaRef, Expr *E, CheckedScopeSpecifier CSS) {	
+  Expr *PruneTemporaryBindings(Sema &SemaRef, Expr *E, CheckedScopeSpecifier CSS) {
     // Account for checked scope information when transforming the expression.
     Sema::CheckedScopeRAII CheckedScope(SemaRef, CSS);
 
-    Sema::ExprSubstitutionScope Scope(SemaRef); // suppress diagnostics	
-    ExprResult R = PruneTemporaryHelper(SemaRef).TransformExpr(E);	
+    Sema::ExprSubstitutionScope Scope(SemaRef); // suppress diagnostics
+    ExprResult R = PruneTemporaryHelper(SemaRef).TransformExpr(E);
     if (R.isInvalid())
       return SemaRef.Context.getPrebuiltBoundsUnknown();
     else
       return R.get();
-  }	
+  }
 }
 
 namespace {
@@ -618,7 +619,7 @@ namespace {
 
       // If a variable declaration has declared bounds, modify BoundsContextRef
       // to map the variable declaration to the normalized declared bounds.
-      // 
+      //
       // Returns true if visiting the variable declaration did not terminate
       // early.  Visiting variable declarations in DeclaredBoundsHelper should
       // never terminate early.
@@ -1507,7 +1508,7 @@ namespace {
           // that is not sufficient to imply a relationship between SrcV and
           // any variable in DstVars.
           for (int DstIndex = 0; DstIndex < InnerListSize; ++DstIndex) {
-            if (DstIndex == SrcIndex) 
+            if (DstIndex == SrcIndex)
               continue;
             for (auto I = DstVars.begin(); I != DstVars.end(); ++I) {
               DeclRefExpr *DstV = cast<DeclRefExpr>(*I);
@@ -1853,7 +1854,7 @@ namespace {
 
       bool CreatedStdForm1 = CreateStandardForm(Ctx, Base1, Offset1, ConstantPart1, IsOpSigned1, VariablePart1);
       bool CreatedStdForm2 = CreateStandardForm(Ctx, Base2, Offset2, ConstantPart2, IsOpSigned2, VariablePart2);
-      
+
       if (!CreatedStdForm1 || !CreatedStdForm2)
         return false;
       if (!ExprUtil::EqualValue(Ctx, VariablePart1, VariablePart2, EquivExprs))
@@ -1980,11 +1981,11 @@ namespace {
     //
     // If Kind is StaticBoundsCast, check whether a static cast between Ptr
     // types from SrcBounds to DestBounds is legal.
-    // 
+    //
     // If any free variable is found in SrcBounds or DeclaredBounds, return
     // False and add the free variables to FreeVariables.
     ProofResult ProveBoundsDeclValidity(
-                const BoundsExpr *DeclaredBounds, 
+                const BoundsExpr *DeclaredBounds,
                 const BoundsExpr *SrcBounds,
                 ProofFailure &Cause, EquivExprSets *EquivExprs,
                 FreeVariableListTy &FreeVariables,
@@ -2066,8 +2067,8 @@ namespace {
       // in ProveBoundsDeclValidity, if any of these checks result in an
       // early return, we can avoid constructing a modified EquivExprs set
       // that records equality between RetVal and RetExpr.
-      
-      // Null declared return bounds or declared return bounds(unknown) 
+
+      // Null declared return bounds or declared return bounds(unknown)
       // implied by any other bounds.
       if (!ReturnBounds || ReturnBounds->isUnknown())
         return ProofResult::True;
@@ -2521,7 +2522,7 @@ namespace {
                                       CheckedScopeSpecifier CSS) {
       // Record expression equality implied by initialization (see
       // CheckBoundsDeclAtAssignment).
-      
+
       // Record equivalence between expressions implied by initializion.
       // If D declares a variable V, and
       // 1. Src binds a temporary variable T, record equivalence
@@ -3327,7 +3328,7 @@ namespace {
       // are RValues.
       else if (Op == BinaryOperatorKind::BO_Comma)
         ResultBounds = RHSBounds;
-      
+
       else {
         // Compound Assignments function like assignments mostly,
         // except the LHS is an L-Value, so we'll use its lvalue target bounds
@@ -3780,7 +3781,7 @@ namespace {
 
         if (DumpBounds)
           DumpBoundsCastBounds(llvm::outs(), E, DeclaredBounds, NormalizedBounds, SubExprBounds);
-        
+
         return BoundsUtil::ExpandToRange(S, SubExprAtNewType, E->getBoundsExpr());
       }
 
@@ -4325,7 +4326,7 @@ namespace {
     BoundsExpr *CheckCastLValue(CastExpr *E, CheckedScopeSpecifier CSS,
                                 CheckingState &State) {
       // An LValueBitCast adjusts the type of the lvalue.  The bounds are not
-      // changed, except that their relative alignment may change (the bounds 
+      // changed, except that their relative alignment may change (the bounds
       // may only cover a partial object).  TODO: When we add relative
       // alignment support to the compiler, adjust the relative alignment.
       if (E->getCastKind() == CastKind::CK_LValueBitCast)
@@ -4562,7 +4563,7 @@ namespace {
       // should provably imply the declared bounds of a variable.
       if (!DiagnoseObservedBounds)
         return;
-      
+
       // Which diagnostic message to print?
       unsigned DiagId =
           (Result == ProofResult::False)
@@ -4576,7 +4577,7 @@ namespace {
       SourceLocation Loc = BlameAssignmentWithinStmt(St, A, State, DiagId);
       if (Result == ProofResult::False)
         ExplainProofFailure(Loc, Cause, ProofStmtKind::BoundsDeclaration);
-      
+
       if (TestFailure(Cause, ProofFailure::HasFreeVariables))
         DiagnoseFreeVariables(diag::note_free_variable_decl_or_inferred, Loc,
                               FreeVars);
@@ -4703,7 +4704,7 @@ namespace {
       S.Diag(Loc, DiagId) << FunctionDeclaration << RS->getSourceRange();
       if (Result == ProofResult::False)
         ExplainProofFailure(Loc, Cause, ProofStmtKind::ReturnStmt);
-      
+
       if (TestFailure(Cause, ProofFailure::HasFreeVariables))
         DiagnoseFreeVariables(diag::note_free_variable_decl_or_inferred, Loc,
                               FreeVars);
@@ -5306,7 +5307,7 @@ namespace {
       // value is either some variable w != v in EQ, or it is null. In either
       // case, the original value cannot use the value of v.
       OriginalValueUsesLValue = false;
-      
+
       // Check EQ for a variable w != v that produces the same value as v.
       Expr *ValuePreservingV = nullptr;
       ExprSetTy F = GetEqualExprSetContainingExpr(Target, EQ, ValuePreservingV);
@@ -5921,7 +5922,7 @@ namespace {
                                       /*IsInteropTypeAnnotation=*/true);
         return cast<BoundsExpr>(PruneTemporaryBindings(S, B, CSS));
       }
-            
+
       if (!B)
         return BoundsUtil::CreateBoundsAlwaysUnknown(S);
 
@@ -5951,7 +5952,7 @@ namespace {
     // A cast expression may be an lvalue.
     BoundsExpr *LValueCastTargetBounds(CastExpr *CE, CheckedScopeSpecifier CSS) {
       // An LValueBitCast adjusts the type of the lvalue.  The bounds are not
-      // changed, except that their relative alignment may change (the bounds 
+      // changed, except that their relative alignment may change (the bounds
       // may only cover a partial object).  TODO: When we add relative
       // alignment support to the compiler, adjust the relative alignment.
       if (CE->getCastKind() == CastKind::CK_LValueBitCast)
@@ -5992,7 +5993,7 @@ namespace {
       } else if (Ty->isCheckedPointerNtArrayType()) {
         BE = Context.getPrebuiltCountZero();
       }
-   
+
       if (!BE)
         return CreateBoundsEmpty();
 
@@ -6106,7 +6107,7 @@ namespace {
       }
       else {
         // Get the function prototype, where the abstract function return
-        // bounds are kept.  The callee (if it exists) 
+        // bounds are kept.  The callee (if it exists)
         // is always a function pointer.
         const PointerType *PtrTy =
           CE->getCallee()->getType()->getAs<PointerType>();
@@ -6244,7 +6245,7 @@ namespace {
 
         // If we've found a cast expression...
         if (const CastExpr *NeedleCast = dyn_cast<CastExpr>(Needle)) {
-          if (const ImplicitCastExpr *ICE = 
+          if (const ImplicitCastExpr *ICE =
                 dyn_cast<ImplicitCastExpr>(NeedleCast))
             // Stop at lvalue-to-ravlue casts.
             if (ICE->getCastKind() == CK_LValueToRValue)
@@ -6323,14 +6324,14 @@ namespace {
             // is that the source is an unchecked pointer type.
             if (E->getCastKind() == CastKind::CK_AssumePtrBounds)
               return;
-            S.Diag(Needle->getExprLoc(), 
+            S.Diag(Needle->getExprLoc(),
                    diag::err_cast_to_checked_fn_ptr_from_unchecked_fn_ptr) <<
               ToType << E->getSourceRange();
             return;
           }
         }
 
-        S.Diag(Needle->getExprLoc(), 
+        S.Diag(Needle->getExprLoc(),
                diag::err_cast_to_checked_fn_ptr_from_incompatible_type)
           << ToType << NeedleTy << NeedleTy->isCheckedPointerPtrType()
           << E->getSourceRange();
@@ -6559,7 +6560,7 @@ void Sema::CheckFunctionBodyBoundsDecls(FunctionDecl *FD, Stmt *Body) {
   }
   else {
     // A CFG couldn't be constructed.  CFG construction doesn't support
-    // __finally or may encounter a malformed AST.  Fall back on to non-flow 
+    // __finally or may encounter a malformed AST.  Fall back on to non-flow
     // based analysis.  The CSS parameter is ignored because the checked
     // scope information is obtained from Body, which is a compound statement.
     Checker.Check(Body, CheckedScopeSpecifier::CSS_Unchecked);
@@ -6568,6 +6569,97 @@ void Sema::CheckFunctionBodyBoundsDecls(FunctionDecl *FD, Stmt *Body) {
 #if TRACE_CFG
   llvm::outs() << "Done " << FD->getName() << "\n";
 #endif
+}
+
+void PropagateStmtInvariants(llvm::SetVector<VarDecl* > Vars, Stmt *E) {
+  switch (E->getStmtClass()) {
+    case Expr::BinaryOperatorClass: {
+      const BinaryOperator *BO = dyn_cast<BinaryOperator>(E);
+      if (BO->isAssignmentOp()) {
+        if (DeclRefExpr *DRE = dyn_cast_or_null<DeclRefExpr>(BO->getLHS())) {
+          if (VarDecl *VD = dyn_cast_or_null<VarDecl>(DRE->getDecl())) {
+            if (VD->getInvariant()) {
+#if 0
+              llvm::errs() << "Begin Dumping:\n";
+              clang::LangOptions lo;
+              llvm::errs() << "VarDecl: "
+              << VD->getNameAsString() << '('
+              << QualType::getAsString(VD->getType().split(), PrintingPolicy(lo))
+              << ")\n";
+              cast<Stmt>(BO)->dump();
+              llvm::errs() << "End Dumping;\n";
+#endif
+              BO->setInvariant(VD->getInvariant());
+            }
+          }
+        } else {
+          clang::LangOptions lo;                                            
+          std::string out_str;
+          llvm::raw_string_ostream outstream(out_str);
+          BO->getLHS()->printPretty(outstream, NULL, PrintingPolicy(lo));
+          llvm::errs() << "Unprocessed Assignment LHS: " << out_str.c_str() << '\n';
+          break;
+        }
+      } else {
+        PropagateStmtInvariants(Vars, BO->getLHS());
+      }
+      PropagateStmtInvariants(Vars, BO->getRHS());
+      break;
+    }
+    case Expr::UnaryOperatorClass: {
+      UnaryOperator *UO = cast<UnaryOperator>(E);
+      if (DeclRefExpr *DRE = dyn_cast_or_null<DeclRefExpr>(UO->getSubExpr())) {
+        if (VarDecl *VD = dyn_cast_or_null<VarDecl>(DRE->getDecl())) {
+          if (VD->getInvariant()) {
+            if (UO->getOpcode() == UnaryOperatorKind::UO_AddrOf) {
+              llvm::errs() << "warning: & of invariant variable invalid\n";
+              return;
+            }
+            if (UO->isArithmeticOp()) {
+              UO->setInvariant(VD->getInvariant());
+            }
+          }
+        }
+      }
+      break;
+    }
+    case Stmt::CompoundStmtClass: {
+      CompoundStmt *Scope = cast<CompoundStmt>(E);
+      for (auto I = Scope->body_rbegin(), ED = Scope->body_rend(); I != ED; ++I) {
+        PropagateStmtInvariants(Vars, *I);
+      }
+      break;
+    }
+    case Stmt::ReturnStmtClass:
+    case Stmt::DeclStmtClass:
+    case Expr::DeclRefExprClass:
+    case Expr::ImplicitCastExprClass:
+    case Expr::FloatingLiteralClass:
+    case Expr::IntegerLiteralClass: {
+      break;
+    }
+    default: {
+      clang::LangOptions lo;
+      std::string out_str;
+      llvm::raw_string_ostream outstream(out_str);
+      E->printPretty(outstream, NULL, PrintingPolicy(lo));
+      llvm::errs() << "Unprocessed Stmt(" 
+                   << E->getStmtClassName() << "): "
+                   << out_str.c_str() << '\n';
+      break;
+    }
+  }
+}
+
+void Sema::PropagateFunctionBodyInvariants(FunctionDecl *FD, Stmt *Body) {
+  llvm::errs() << "Processing Function Invariant\n";
+  FD->dump();
+  llvm::errs() << "Vars: ";
+  for (const auto &var : FD->getInvariantVarSet()) {
+    llvm::errs() << var->getNameAsString().c_str() << " ";
+  }
+  llvm::errs() << '\n';
+  PropagateStmtInvariants(FD->getInvariantVarSet(), Body);
 }
 
 void Sema::CheckTopLevelBoundsDecls(VarDecl *D) {
@@ -6606,7 +6698,7 @@ namespace {
         addError(E, MEK_Assign);
         FoundModifyingExpr = true;
       }
-      
+
       return true;
     }
 
