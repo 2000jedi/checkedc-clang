@@ -4592,14 +4592,17 @@ void WalkExprFindVar(Expr *E, SmallVector<DeclRefExpr*, 32> *V) {
         V->push_back(cast<DeclRefExpr>(E));
 
         const DeclRefExpr *DRE = cast<DeclRefExpr>(E);
-        const VarDecl *VD = dyn_cast_or_null<VarDecl>(DRE->getDecl());
+        if (const VarDecl *VD = dyn_cast_or_null<VarDecl>(DRE->getDecl())) {
 
-        clang::LangOptions lo;
-        llvm::errs() << "VarDecl: "
-                     << VD->getNameAsString() << '('
-                     << QualType::getAsString(
-                         VD->getType().split(), PrintingPolicy(lo))
-                     << ")\n";
+          clang::LangOptions lo;
+          llvm::errs() << "VarDecl: "
+                       << VD->getNameAsString() << '('
+                       << QualType::getAsString(
+                           VD->getType().split(), PrintingPolicy(lo))
+                       << ")\n";
+        } else {
+          llvm::errs() << "error: DeclRef out of scope\n";
+        }
         break;
       }
       case Expr::BinaryOperatorClass: {
@@ -4658,9 +4661,6 @@ InvariantClause *Sema::ActOnInvariantClause(SourceLocation InvariantLoc, Expr *C
     DeclaratorDecl *DD = cast<DeclaratorDecl>(VD);
     if (! DD->getInvariant()) {
       DD->setInvariant(IC);
-    }
-    if (FunctionDecl *FD = dyn_cast_or_null<FunctionDecl>(VD->getParentFunctionOrMethod())) {
-      FD->addInvariantVar(VD);
     }
   }
 

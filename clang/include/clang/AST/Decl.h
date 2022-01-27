@@ -2969,16 +2969,6 @@ public:
   static FunctionDecl *castFromDeclContext(const DeclContext *DC) {
     return static_cast<FunctionDecl *>(const_cast<DeclContext*>(DC));
   }
-
-private:
-  llvm::SetVector<VarDecl *> InvariantVars;
-
-public:
-  void addInvariantVar(VarDecl *var) {
-    InvariantVars.insert(var);
-  }
-
-  llvm::SetVector<VarDecl *> getInvariantVarSet(void) { return InvariantVars; }
 };
 
 /// Represents a member of a struct/union/class.

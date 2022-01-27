@@ -6571,7 +6571,9 @@ void Sema::CheckFunctionBodyBoundsDecls(FunctionDecl *FD, Stmt *Body) {
 #endif
 }
 
-void PropagateStmtInvariants(llvm::SetVector<VarDecl* > Vars, Stmt *E) {
+void PropagateStmtInvariants(Stmt *E) {
+  if (E == nullptr) return;
+
   switch (E->getStmtClass()) {
     case Expr::BinaryOperatorClass: {
       const BinaryOperator *BO = dyn_cast<BinaryOperator>(E);
@@ -6601,9 +6603,9 @@ void PropagateStmtInvariants(llvm::SetVector<VarDecl* > Vars, Stmt *E) {
           break;
         }
       } else {
-        PropagateStmtInvariants(Vars, BO->getLHS());
+        PropagateStmtInvariants(BO->getLHS());
       }
-      PropagateStmtInvariants(Vars, BO->getRHS());
+      PropagateStmtInvariants(BO->getRHS());
       break;
     }
     case Expr::UnaryOperatorClass: {
@@ -6626,8 +6628,15 @@ void PropagateStmtInvariants(llvm::SetVector<VarDecl* > Vars, Stmt *E) {
     case Stmt::CompoundStmtClass: {
       CompoundStmt *Scope = cast<CompoundStmt>(E);
       for (auto I = Scope->body_rbegin(), ED = Scope->body_rend(); I != ED; ++I) {
-        PropagateStmtInvariants(Vars, *I);
+        PropagateStmtInvariants(*I);
       }
+      break;
+    }
+    case Stmt::IfStmtClass: {
+      IfStmt *IS = cast<IfStmt>(E);
+      PropagateStmtInvariants(IS->getCond());
+      PropagateStmtInvariants(IS->getThen());
+      PropagateStmtInvariants(IS->getElse());
       break;
     }
     case Stmt::DeclStmtClass: {
@@ -6636,13 +6645,13 @@ void PropagateStmtInvariants(llvm::SetVector<VarDecl* > Vars, Stmt *E) {
         Decl* D = DS->getSingleDecl();
         if (VarDecl *VD = dyn_cast_or_null<VarDecl>(D)) {
           if (Expr *Init = VD->getInit())
-            PropagateStmtInvariants(Vars, Init);
+            PropagateStmtInvariants(Init);
         }
       } else {
         for (auto I = DS->decl_rbegin(), ED = DS->decl_rend(); I != ED; ++I) {
           if (VarDecl *VD = dyn_cast_or_null<VarDecl>(*I)) {
             if (Expr *Init = VD->getInit())
-              PropagateStmtInvariants(Vars, Init);
+              PropagateStmtInvariants(Init);
           }
         }
       }
@@ -6671,12 +6680,7 @@ void PropagateStmtInvariants(llvm::SetVector<VarDecl* > Vars, Stmt *E) {
 void Sema::PropagateFunctionBodyInvariants(FunctionDecl *FD, Stmt *Body) {
   llvm::errs() << "Processing Function Invariant\n";
   FD->dump();
-  llvm::errs() << "Vars: ";
-  for (const auto &var : FD->getInvariantVarSet()) {
-    llvm::errs() << var->getNameAsString().c_str() << " ";
-  }
-  llvm::errs() << '\n';
-  PropagateStmtInvariants(FD->getInvariantVarSet(), Body);
+  PropagateStmtInvariants(Body);
 }
 
 void Sema::CheckTopLevelBoundsDecls(VarDecl *D) {
