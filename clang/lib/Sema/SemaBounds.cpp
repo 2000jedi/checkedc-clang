@@ -6630,8 +6630,25 @@ void PropagateStmtInvariants(llvm::SetVector<VarDecl* > Vars, Stmt *E) {
       }
       break;
     }
+    case Stmt::DeclStmtClass: {
+      DeclStmt *DS = cast<DeclStmt>(E);
+      if (DS->isSingleDecl()) {
+        Decl* D = DS->getSingleDecl();
+        if (VarDecl *VD = dyn_cast_or_null<VarDecl>(D)) {
+          if (Expr *Init = VD->getInit())
+            PropagateStmtInvariants(Vars, Init);
+        }
+      } else {
+        for (auto I = DS->decl_rbegin(), ED = DS->decl_rend(); I != ED; ++I) {
+          if (VarDecl *VD = dyn_cast_or_null<VarDecl>(*I)) {
+            if (Expr *Init = VD->getInit())
+              PropagateStmtInvariants(Vars, Init);
+          }
+        }
+      }
+      break;
+    }
     case Stmt::ReturnStmtClass:
-    case Stmt::DeclStmtClass:
     case Expr::DeclRefExprClass:
     case Expr::ImplicitCastExprClass:
     case Expr::FloatingLiteralClass:
