@@ -2378,6 +2378,7 @@ public:
     const_cast<UnaryOperator *>(this)->setInvariant(IE);
   }
   InvariantClause *getInvariant(void) { return InvariantExpr; }
+  InvariantClause *getInvariant(void) const { return InvariantExpr; }
 };
 
 /// Helper class for OffsetOfExpr.
@@ -4457,6 +4458,7 @@ public:
     const_cast<BinaryOperator *>(this)->setInvariant(IE); 
   }
   InvariantClause *getInvariant(void) { return InvariantExpr; }
+  InvariantClause *getInvariant(void) const { return InvariantExpr; }
 };
 
 /// CompoundAssignOperator - For compound assignments (e.g. +=), we keep
