@@ -4621,6 +4621,10 @@ void Sema::WalkExprFindVar(Expr *E, SmallVector<VarDecl*, 32> *V) {
         }
         break;
       }
+      case Expr::ArraySubscriptExprClass: {
+        Diag(E->getBeginLoc(), diag::err_deref_in_invariants);
+        break;
+      }
       case Expr::MemberExprClass: {
         Diag(E->getBeginLoc(), diag::err_member_in_invariants);
         break;
