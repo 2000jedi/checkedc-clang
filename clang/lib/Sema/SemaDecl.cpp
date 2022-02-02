@@ -14948,11 +14948,12 @@ void Sema::ActOnBoundsDecl(DeclaratorDecl *D, BoundsAnnotations Annots,
   if (Ty.isNull())
     return;
 
-  D->setInvariant(Annots.getInvariant());
-  if (D->getInvariant()) {
+  if (Annots.getInvariant())
+    D->addInvariant(Annots.getInvariant());
+  if (D->hasInvariant()) {
     if (!Ty->isCheckedPointerArrayType()) {
       /* Invariants on CheckedPointerArrayTypes only */
-      Diag(D->getInvariant()->getBeginLoc(), diag::err_typecheck_count_bounds_decl) << D;
+      Diag(Annots.getInvariant()->getBeginLoc(), diag::err_typecheck_count_bounds_decl) << D;
     }
   }
   VarDecl *VD = dyn_cast<VarDecl>(D);

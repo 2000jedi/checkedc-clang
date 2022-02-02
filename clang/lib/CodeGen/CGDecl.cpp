@@ -1886,9 +1886,10 @@ void CodeGenFunction::EmitAutoVarInit(const AutoVarEmission &emission) {
     LValue lv = MakeAddrLValue(Loc, type);
     lv.setNonGC(true);
     EmitExprAsInit(Init, &D, lv, capturedByInit);
-    
-    if (D.getInvariant() && (! D.getType()->isCheckedPointerArrayType())) {
-      EmitExplicitDynamicCheck(D.getInvariant()->get());
+
+    if (D.hasInvariant() && (! D.getType()->isCheckedPointerArrayType())) {
+      for (auto I : D.getInvariants())
+        EmitExplicitDynamicCheck(I->get());
     }
     return;
   }
@@ -1899,8 +1900,9 @@ void CodeGenFunction::EmitAutoVarInit(const AutoVarEmission &emission) {
     lv.setNonGC(true);
     EmitStoreThroughLValue(RValue::get(constant), lv, true);
     
-    if (D.getInvariant() && (! D.getType()->isCheckedPointerArrayType())) {
-      EmitExplicitDynamicCheck(D.getInvariant()->get());
+    if (D.hasInvariant() && (! D.getType()->isCheckedPointerArrayType())) {
+      for (auto I : D.getInvariants())
+        EmitExplicitDynamicCheck(I->get());
     }
     return;
   }

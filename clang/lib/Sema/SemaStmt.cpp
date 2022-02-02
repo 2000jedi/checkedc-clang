@@ -4661,9 +4661,7 @@ InvariantClause *Sema::ActOnInvariantClause(SourceLocation InvariantLoc, Expr *C
 
   for (auto VD: vars) {
     DeclaratorDecl *DD = cast<DeclaratorDecl>(VD);
-    if (! DD->getInvariant()) {
-      DD->setInvariant(IC);
-    }
+    DD->addInvariant(IC);
   }
 
   return IC;

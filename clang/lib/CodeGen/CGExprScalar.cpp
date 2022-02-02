@@ -2742,9 +2742,8 @@ ScalarExprEmitter::EmitScalarPrePostIncDec(const UnaryOperator *E, LValue LV,
   else
     CGF.EmitStoreThroughLValue(RValue::get(value), LV);
 
-  if (E->getInvariant()) {
-    CGF.EmitExplicitDynamicCheck(E->getInvariant()->get());
-  }
+  for (auto I : E->getInvariants())
+    CGF.EmitExplicitDynamicCheck(I->get());
 
   // If this is a postinc, return the value read from memory, otherwise use the
   // updated value.
@@ -3121,9 +3120,8 @@ LValue ScalarExprEmitter::EmitCompoundAssignLValue(
   else
     CGF.EmitStoreThroughLValue(RValue::get(Result), LHSLV);
 
-  if (E->getInvariant()) {
-    CGF.EmitExplicitDynamicCheck(E->getInvariant()->get());
-  }
+  for (auto I : E->getInvariants())
+    CGF.EmitExplicitDynamicCheck(I->get());
 
   if (CGF.getLangOpts().OpenMP)
     CGF.CGM.getOpenMPRuntime().checkAndEmitLastprivateConditional(CGF,
@@ -4219,9 +4217,9 @@ Value *ScalarExprEmitter::VisitBinAssign(const BinaryOperator *E) {
       CGF.EmitNullabilityCheck(LHS, RHS, E->getExprLoc());
       CGF.EmitStoreThroughLValue(RValue::get(RHS), LHS);
     }
-    if (E->getInvariant()) {
-      CGF.EmitExplicitDynamicCheck(E->getInvariant()->get());
-    }
+
+    for (auto I : E->getInvariants())
+      CGF.EmitExplicitDynamicCheck(I->get());
   }
 
   // If the result is clearly ignored, return now.

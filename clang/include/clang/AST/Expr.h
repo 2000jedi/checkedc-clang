@@ -29,6 +29,7 @@
 #include "clang/Basic/TypeTraits.h"
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/APSInt.h"
+#include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/iterator.h"
@@ -2369,16 +2370,23 @@ public:
   }
 
 private:
-  InvariantClause *InvariantExpr;
+  ArrayRef<InvariantClause*> InvariantExprs;
 public:
-  void setInvariant(InvariantClause *IE) {
-    InvariantExpr = IE;
+  void addInvariants(llvm::ArrayRef<InvariantClause*> IE) {
+    llvm::SetVector<InvariantClause*> SV(
+      InvariantExprs.begin(), InvariantExprs.end()
+      );
+    SV.set_union(llvm::SetVector<InvariantClause*>(
+      IE.begin(), IE.end()
+    ));
+    InvariantExprs = SV.getArrayRef();
   }
-  void setInvariant(InvariantClause *IE) const {
-    const_cast<UnaryOperator *>(this)->setInvariant(IE);
+  void addInvariants(llvm::ArrayRef<InvariantClause*> IE) const {
+    const_cast<UnaryOperator *>(this)->addInvariants(IE);
   }
-  InvariantClause *getInvariant(void) { return InvariantExpr; }
-  InvariantClause *getInvariant(void) const { return InvariantExpr; }
+  llvm::ArrayRef<InvariantClause*> getInvariants(void) const {
+    return InvariantExprs;
+  }
 };
 
 /// Helper class for OffsetOfExpr.
@@ -4448,17 +4456,25 @@ protected:
     return HasFPFeatures * sizeof(FPOptionsOverride);
   }
 
-  private:
-  InvariantClause *InvariantExpr;
+private:
+  ArrayRef<InvariantClause*> InvariantExprs;
 public:
-  void setInvariant(InvariantClause *IE) {
-    InvariantExpr = IE;
+  void addInvariants(llvm::ArrayRef<InvariantClause*> IE) {
+    llvm::SetVector<InvariantClause*> SV(
+      InvariantExprs.begin(), InvariantExprs.end()
+    );
+    SV.set_union(llvm::SetVector<InvariantClause*>(
+      IE.begin(), IE.end()
+    ));
+    InvariantExprs = SV.getArrayRef();
   }
-  void setInvariant(InvariantClause *IE) const { 
-    const_cast<BinaryOperator *>(this)->setInvariant(IE); 
+  void addInvariants(llvm::ArrayRef<InvariantClause*> IE) const {
+    const_cast<BinaryOperator *>(this)->addInvariants(IE);
   }
-  InvariantClause *getInvariant(void) { return InvariantExpr; }
-  InvariantClause *getInvariant(void) const { return InvariantExpr; }
+  llvm::ArrayRef<InvariantClause*> getInvariants(void) const {
+    return InvariantExprs;
+  }
+
 };
 
 /// CompoundAssignOperator - For compound assignments (e.g. +=), we keep
