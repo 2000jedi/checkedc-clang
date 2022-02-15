@@ -3657,7 +3657,7 @@ bool Parser::ParseBoundsAnnotations(const Declarator &D,
         Error = ParseWhereClauseOnDecl(ThisDecl);
     } else if (CheckedInvariantExpression(Tok)) {
       if (DeferredToks) {
-        DeferredToks->push_back(Tok);
+        (*DeferredToks)->push_back(Tok);
         ConsumeToken();
 
         if (Tok.isNot(tok::l_paren)) {
@@ -3665,29 +3665,30 @@ bool Parser::ParseBoundsAnnotations(const Declarator &D,
           SkipUntil(tok::semi);
           Error = true;
         }
-        DeferredToks->push_back(Tok);
-        ConsumeToken();
+        BalancedDelimiterTracker T(*this, tok::l_paren);
+        (*DeferredToks)->push_back(Tok);
+        T.consumeOpen();
         unsigned NestedParen = 0;
         while (true) {
           switch (Tok.getKind()) {
           case tok::l_paren:
             ++NestedParen;
-            DeferredToks->push_back(Tok);
-            ConsumeToken();
+            (*DeferredToks)->push_back(Tok);
+            ConsumeParen();
             continue;
           case tok::r_paren:
             if (!NestedParen)
               break;
             --NestedParen;
-            DeferredToks->push_back(Tok);
-            ConsumeToken();
+            (*DeferredToks)->push_back(Tok);
+            ConsumeParen();
             continue;
           case tok::semi:
             Diag(Tok, diag::err_invalid_decl_invariant);
             Error = true;
             break;
           default:
-            DeferredToks->push_back(Tok);
+            (*DeferredToks)->push_back(Tok);
             ConsumeToken();
             continue;
           }
@@ -3697,8 +3698,8 @@ bool Parser::ParseBoundsAnnotations(const Declarator &D,
           Diag(Tok, diag::err_invalid_decl_invariant);
           return true;
         }
-        DeferredToks->push_back(Tok);
-        ConsumeToken();
+        (*DeferredToks)->push_back(Tok);
+        T.consumeClose();
       } else {
         InvariantClause *IClause = ParseInvariantClause();
         if (!IClause) {
