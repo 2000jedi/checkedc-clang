@@ -3656,12 +3656,57 @@ bool Parser::ParseBoundsAnnotations(const Declarator &D,
       else
         Error = ParseWhereClauseOnDecl(ThisDecl);
     } else if (CheckedInvariantExpression(Tok)) {
-      InvariantClause *IClause = ParseInvariantClause();
-      if (!IClause) {
-        Diag(Tok, diag::err_invalid_decl_invariant);
-        Error = true;
+      if (DeferredToks) {
+        Toks.push_back(Tok);
+        ConsumeToken();
+
+        if (Tok.isNot(tok::l_paren)) {
+          Diag(Tok, diag::err_expected_lparen_after) << "invariant";
+          SkipUntil(tok::semi);
+          Error = true;
+        }
+        Toks.push_back(Tok);
+        ConsumeToken();
+        unsigned NestedParen = 0;
+        while (true) {
+          switch (Tok.getKind()) {
+          case tok::l_paren:
+            ++NestedParen;
+            Toks.push_back(Tok);
+            ConsumeToken();
+            continue;
+          case tok::r_paren:
+            if (!NestedParen)
+              break;
+            --NestedParen;
+            Toks.push_back(Tok);
+            ConsumeToken();
+            continue;
+          case tok::semi:
+            Diag(Tok, diag::err_invalid_decl_invariant);
+            Error = true;
+            break;
+          default:
+            Toks.push_back(Tok);
+            ConsumeToken();
+            continue;
+          }
+          break;
+        }
+        if (Tok.isNot(tok::r_paren)) {
+          Diag(Tok, diag::err_invalid_decl_invariant);
+          return true;
+        }
+        Toks.push_back(Tok);
+        ConsumeToken();
+      } else {
+        InvariantClause *IClause = ParseInvariantClause();
+        if (!IClause) {
+          Diag(Tok, diag::err_invalid_decl_invariant);
+          Error = true;
+        }
+        Result.setInvariant(IClause);
       }
-      Result.setInvariant(IClause);
     }
   }
 

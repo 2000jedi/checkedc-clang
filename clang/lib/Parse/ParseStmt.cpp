@@ -2766,12 +2766,6 @@ InvariantClause *Parser::ParseInvariantClause() {
     return nullptr;
   }
   T.consumeClose();
-  /*
-  Sema::ConditionResult Cond;
-  SourceLocation Loc = Tok.getLocation();
-  if (ParseParenExprOrCondition(nullptr, Cond, Loc, Sema::ConditionKind::Boolean))
-    return nullptr;
-  */
 
   // type check expression
   Expr *ResultExpr = CondExpr.get();
