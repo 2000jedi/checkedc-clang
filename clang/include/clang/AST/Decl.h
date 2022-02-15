@@ -714,7 +714,7 @@ protected:
 
   BoundsAnnotations *Annotations;
   BoundsExpr *NormalizedBounds;
-  InvariantClause *InvariantExpr;
+  llvm::SetVector<InvariantClause*> InvariantExprs;
 public:
   friend class ASTDeclReader;
   friend class ASTDeclWriter;
@@ -863,17 +863,26 @@ public:
     NormalizedBounds = E;
   }
 
-  InvariantClause *getInvariant() const {
-    return InvariantExpr;
+  bool hasInvariant() const {
+    return ! InvariantExprs.empty();
+  }
+
+  ArrayRef<InvariantClause*> getInvariants() const {
+    return InvariantExprs.getArrayRef();
+  }
+
+  void addInvariant(InvariantClause *IC) {
+    this->InvariantExprs.insert(IC);
   }
 
   void setInvariant() const {
-    const_cast<DeclaratorDecl *>(this)->setInvariant(Annotations->getInvariant());
+    const_cast<DeclaratorDecl *>(this)->addInvariant(Annotations->getInvariant());
   }
 
+  /*
   void setInvariant(InvariantClause *E) {
     InvariantExpr = E;
-  }
+  }*/
 
   /// \brief The Checked C interop type declared or inferred for this
   /// declaration.  For function declarations, this is the return

@@ -6581,7 +6581,7 @@ void Sema::PropagateStmtInvariants(Stmt *E) {
       if (BO->isAssignmentOp()) {
         if (DeclRefExpr *DRE = dyn_cast_or_null<DeclRefExpr>(BO->getLHS())) {
           if (VarDecl *VD = dyn_cast_or_null<VarDecl>(DRE->getDecl())) {
-            if (VD->getInvariant()) {
+            if (VD->hasInvariant()) {
 #if 0
               llvm::errs() << "Begin Dumping:\n";
               clang::LangOptions lo;
@@ -6592,7 +6592,7 @@ void Sema::PropagateStmtInvariants(Stmt *E) {
               cast<Stmt>(BO)->dump();
               llvm::errs() << "End Dumping;\n";
 #endif
-              BO->setInvariant(VD->getInvariant());
+              BO->addInvariants(VD->getInvariants());
             }
           }
         } else {
@@ -6616,14 +6616,14 @@ void Sema::PropagateStmtInvariants(Stmt *E) {
       UnaryOperator *UO = cast<UnaryOperator>(E);
       if (DeclRefExpr *DRE = dyn_cast_or_null<DeclRefExpr>(UO->getSubExpr())) {
         if (VarDecl *VD = dyn_cast_or_null<VarDecl>(DRE->getDecl())) {
-          if (VD->getInvariant() && (! VD->getType()->isCheckedPointerArrayType())) {
+          if (VD->hasInvariant() && (! VD->getType()->isCheckedPointerArrayType())) {
             if (UO->getOpcode() == UnaryOperatorKind::UO_AddrOf) {
               Diag(E->getBeginLoc(), diag::err_address_of_var_with_invariants) <<
                 VD << E->getSourceRange();
               return;
             }
             if (UO->isArithmeticOp()) {
-              UO->setInvariant(VD->getInvariant());
+              UO->addInvariants(VD->getInvariants());
             }
           }
         }
@@ -6705,6 +6705,11 @@ void Sema::PropagateStmtInvariants(Stmt *E) {
         }
       }
       break;
+    }
+    case Expr::ArraySubscriptExprClass: {
+      ArraySubscriptExpr *ASE = cast<ArraySubscriptExpr>(E);
+      PropagateStmtInvariants(ASE->getBase());
+      PropagateStmtInvariants(ASE->getIdx());
     }
     case Stmt::ReturnStmtClass:
     case Expr::DeclRefExprClass:
