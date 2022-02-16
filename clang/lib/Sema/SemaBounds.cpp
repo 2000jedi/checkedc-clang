@@ -6593,6 +6593,15 @@ void Sema::PropagateStmtInvariants(Stmt *E) {
               llvm::errs() << "End Dumping;\n";
 #endif
               BO->addInvariants(VD->getInvariants());
+#if 0
+              for (auto I : BO->getInvariants()) {
+                clang::LangOptions lo;
+                std::string out_str;
+                llvm::raw_string_ostream outstream(out_str);
+                I->get()->printPretty(outstream, NULL, PrintingPolicy(lo));
+                llvm::errs() << "Invariant is: " << out_str.c_str() << '\n';
+              }
+#endif
             }
           }
         } else {
@@ -6710,6 +6719,7 @@ void Sema::PropagateStmtInvariants(Stmt *E) {
       ArraySubscriptExpr *ASE = cast<ArraySubscriptExpr>(E);
       PropagateStmtInvariants(ASE->getBase());
       PropagateStmtInvariants(ASE->getIdx());
+      break;
     }
     case Stmt::ReturnStmtClass:
     case Expr::DeclRefExprClass:
