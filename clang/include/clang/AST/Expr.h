@@ -2370,7 +2370,8 @@ public:
   }
 
 private:
-  SmallVector<InvariantClause*, 16> InvariantExprs;
+  InvariantClause* InvariantExprs[16];
+  size_t InvariantSize;
 public:
   void addInvariants(llvm::ArrayRef<InvariantClause*> IE) {
     llvm::SetVector<InvariantClause*> SV(
@@ -2379,13 +2380,18 @@ public:
     SV.set_union(llvm::SetVector<InvariantClause*>(
       IE.begin(), IE.end()
     ));
-    InvariantExprs = SmallVector<InvariantClause *>(SV.begin(), SV.end());
+    
+    InvariantSize = SV.size();
+    int i = 0;
+    for (auto IV : SV) {
+      InvariantExprs[i++] = IV;
+    }
   }
   void addInvariants(llvm::ArrayRef<InvariantClause*> IE) const {
     const_cast<UnaryOperator *>(this)->addInvariants(IE);
   }
   llvm::ArrayRef<InvariantClause*> getInvariants(void) const {
-    return InvariantExprs;
+    return llvm::ArrayRef<InvariantClause*>(InvariantExprs, InvariantSize);
   }
 };
 
@@ -4457,7 +4463,8 @@ protected:
   }
 
 private:
-  SmallVector<InvariantClause*, 16> InvariantExprs;
+  InvariantClause* InvariantExprs[16];
+  size_t InvariantSize;
 public:
   void addInvariants(llvm::ArrayRef<InvariantClause*> IE) {
     llvm::SetVector<InvariantClause*> SV(
@@ -4466,13 +4473,18 @@ public:
     SV.set_union(llvm::SetVector<InvariantClause*>(
       IE.begin(), IE.end()
     ));
-    InvariantExprs = SmallVector<InvariantClause *>(SV.begin(), SV.end());
+
+    InvariantSize = SV.size();
+    int i = 0;
+    for (auto IV : SV) {
+      InvariantExprs[i++] = IV;
+    }
   }
   void addInvariants(llvm::ArrayRef<InvariantClause*> IE) const {
     const_cast<BinaryOperator *>(this)->addInvariants(IE);
   }
   llvm::ArrayRef<InvariantClause*> getInvariants(void) const {
-    return InvariantExprs;
+    return llvm::ArrayRef<InvariantClause*>(InvariantExprs, InvariantSize);
   }
 
 };
