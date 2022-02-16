@@ -2370,7 +2370,7 @@ public:
   }
 
 private:
-  ArrayRef<InvariantClause*> InvariantExprs;
+  SmallVector<InvariantClause*, 16> InvariantExprs;
 public:
   void addInvariants(llvm::ArrayRef<InvariantClause*> IE) {
     llvm::SetVector<InvariantClause*> SV(
@@ -2379,7 +2379,7 @@ public:
     SV.set_union(llvm::SetVector<InvariantClause*>(
       IE.begin(), IE.end()
     ));
-    InvariantExprs = SV.getArrayRef();
+    InvariantExprs = SmallVector<InvariantClause *>(SV.begin(), SV.end());
   }
   void addInvariants(llvm::ArrayRef<InvariantClause*> IE) const {
     const_cast<UnaryOperator *>(this)->addInvariants(IE);
@@ -4457,7 +4457,7 @@ protected:
   }
 
 private:
-  ArrayRef<InvariantClause*> InvariantExprs;
+  SmallVector<InvariantClause*, 16> InvariantExprs;
 public:
   void addInvariants(llvm::ArrayRef<InvariantClause*> IE) {
     llvm::SetVector<InvariantClause*> SV(
@@ -4466,7 +4466,7 @@ public:
     SV.set_union(llvm::SetVector<InvariantClause*>(
       IE.begin(), IE.end()
     ));
-    InvariantExprs = SV.getArrayRef();
+    InvariantExprs = SmallVector<InvariantClause *>(SV.begin(), SV.end());
   }
   void addInvariants(llvm::ArrayRef<InvariantClause*> IE) const {
     const_cast<BinaryOperator *>(this)->addInvariants(IE);
