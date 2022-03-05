@@ -6576,6 +6576,7 @@ void Sema::PropagateStmtInvariants(Stmt *E) {
   if (E == nullptr) return;
 
   switch (E->getStmtClass()) {
+    case Expr::CompoundAssignOperatorClass:
     case Expr::BinaryOperatorClass: {
       const BinaryOperator *BO = dyn_cast<BinaryOperator>(E);
       if (BO->isAssignmentOp()) {
@@ -6721,6 +6722,7 @@ void Sema::PropagateStmtInvariants(Stmt *E) {
       PropagateStmtInvariants(ASE->getIdx());
       break;
     }
+    case Stmt::BreakStmtClass:
     case Stmt::ReturnStmtClass:
     case Expr::DeclRefExprClass:
     case Expr::ImplicitCastExprClass:
