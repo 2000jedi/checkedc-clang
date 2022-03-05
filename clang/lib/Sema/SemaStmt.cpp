@@ -4633,6 +4633,13 @@ void Sema::WalkExprFindVar(Expr *E, SmallVector<VarDecl*, 32> *V) {
       case Expr::IntegerLiteralClass: {
         break;
       }
+      case Expr::CallExprClass: {
+	CallExpr *CE = cast<CallExpr>(E);
+	for (auto I=CE->arg_begin(), ED=CE->arg_end(); I != ED; I++) {
+	  WalkExprFindVar(*I, V);
+        }
+        break;
+      }
       default: {
         clang::LangOptions lo;
         std::string out_str;
