@@ -2374,18 +2374,8 @@ private:
   size_t InvariantSize;
 public:
   void addInvariants(llvm::ArrayRef<InvariantClause*> IE) {
-    auto Ref = llvm::ArrayRef<InvariantClause*>(InvariantExprs, InvariantSize);
-    llvm::SetVector<InvariantClause*> SV(
-      Ref.begin(), Ref.end()
-    );
-    SV.set_union(llvm::SetVector<InvariantClause*>(
-      IE.begin(), IE.end()
-    ));
-    
-    InvariantSize = SV.size();
-    int i = 0;
-    for (auto IV : SV) {
-      InvariantExprs[i++] = IV;
+    for (auto IV : IE) {
+      InvariantExprs[InvariantSize++] = IV;
     }
   }
   void addInvariants(llvm::ArrayRef<InvariantClause*> IE) const {
@@ -4468,18 +4458,8 @@ private:
   size_t InvariantSize;
 public:
   void addInvariants(llvm::ArrayRef<InvariantClause*> IE) {
-    auto Ref = llvm::ArrayRef<InvariantClause*>(InvariantExprs, InvariantSize);
-    llvm::SetVector<InvariantClause*> SV(
-      Ref.begin(), Ref.end()
-    );
-    SV.set_union(llvm::SetVector<InvariantClause*>(
-      IE.begin(), IE.end()
-    ));
-
-    InvariantSize = SV.size();
-    int i = 0;
-    for (auto IV : SV) {
-      InvariantExprs[i++] = IV;
+    for (auto IV : IE) {
+      InvariantExprs[InvariantSize++] = IV;
     }
   }
   void addInvariants(llvm::ArrayRef<InvariantClause*> IE) const {

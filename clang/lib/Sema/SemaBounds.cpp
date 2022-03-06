@@ -6575,6 +6575,12 @@ void Sema::CheckFunctionBodyBoundsDecls(FunctionDecl *FD, Stmt *Body) {
 void Sema::PropagateStmtInvariants(Stmt *E) {
   if (E == nullptr) return;
 
+  clang::LangOptions lo;
+  std::string out_str;
+  llvm::raw_string_ostream outstream(out_str);
+  E->printPretty(outstream, NULL, PrintingPolicy(lo));
+  llvm::errs() << "Propagate: " << out_str.c_str() << "\n";
+
   switch (E->getStmtClass()) {
     case Expr::CompoundAssignOperatorClass:
     case Expr::BinaryOperatorClass: {
@@ -6607,14 +6613,6 @@ void Sema::PropagateStmtInvariants(Stmt *E) {
           }
         } else {
           PropagateStmtInvariants(BO->getLHS());
-#if 0
-          clang::LangOptions lo;                                            
-          std::string out_str;
-          llvm::raw_string_ostream outstream(out_str);
-          BO->getLHS()->printPretty(outstream, NULL, PrintingPolicy(lo));
-          llvm::errs() << "Unprocessed Assignment LHS: " << out_str.c_str() << '\n';
-#endif
-          break;
         }
       } else {
         PropagateStmtInvariants(BO->getLHS());
