@@ -2371,11 +2371,14 @@ public:
 
 private:
   InvariantClause* InvariantExprs[16];
-  size_t InvariantSize;
+  size_t InvariantSize = 0;
 public:
   void addInvariants(llvm::ArrayRef<InvariantClause*> IE) {
     for (auto IV : IE) {
-      InvariantExprs[InvariantSize++] = IV;
+      if (InvariantSize < 16) 
+        InvariantExprs[InvariantSize++] = IV;
+      else
+        llvm::errs() << "Too many Invariants!\n";
     }
   }
   void addInvariants(llvm::ArrayRef<InvariantClause*> IE) const {
@@ -4455,11 +4458,14 @@ protected:
 
 private:
   InvariantClause* InvariantExprs[16];
-  size_t InvariantSize;
+  size_t InvariantSize = 0;
 public:
   void addInvariants(llvm::ArrayRef<InvariantClause*> IE) {
     for (auto IV : IE) {
-      InvariantExprs[InvariantSize++] = IV;
+      if (InvariantSize < 16) 
+        InvariantExprs[InvariantSize++] = IV;
+      else
+        llvm::errs() << "Too many Invariants!\n";
     }
   }
   void addInvariants(llvm::ArrayRef<InvariantClause*> IE) const {

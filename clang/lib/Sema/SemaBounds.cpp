@@ -6574,13 +6574,13 @@ void Sema::CheckFunctionBodyBoundsDecls(FunctionDecl *FD, Stmt *Body) {
 
 void Sema::PropagateStmtInvariants(Stmt *E) {
   if (E == nullptr) return;
-
+#if 0
   clang::LangOptions lo;
   std::string out_str;
   llvm::raw_string_ostream outstream(out_str);
   E->printPretty(outstream, NULL, PrintingPolicy(lo));
   llvm::errs() << "Propagate: " << out_str.c_str() << "\n";
-
+#endif
   switch (E->getStmtClass()) {
     case Expr::CompoundAssignOperatorClass:
     case Expr::BinaryOperatorClass: {
