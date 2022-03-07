@@ -6720,10 +6720,17 @@ void Sema::PropagateStmtInvariants(Stmt *E) {
       PropagateStmtInvariants(ASE->getIdx());
       break;
     }
+    case Expr::ImplicitCastExprClass:
+    case Expr::CStyleCastExprClass: {
+      PropagateStmtInvariants(cast<CastExpr>(E)->getSubExpr());
+      break;
+    }
+    case Expr::CHKCBindTemporaryExprClass:
+    case Expr::MemberExprClass:
+    case Expr::UnaryExprOrTypeTraitExprClass:
     case Stmt::BreakStmtClass:
     case Stmt::ReturnStmtClass:
     case Expr::DeclRefExprClass:
-    case Expr::ImplicitCastExprClass:
     case Expr::CompoundLiteralExprClass:
     case Expr::StringLiteralClass:
     case Expr::CharacterLiteralClass:
@@ -6745,10 +6752,6 @@ void Sema::PropagateStmtInvariants(Stmt *E) {
 }
 
 void Sema::PropagateFunctionBodyInvariants(FunctionDecl *FD, Stmt *Body) {
-#if 0
-  llvm::errs() << "Processing Function Invariant\n";
-  FD->dump();
-#endif
   PropagateStmtInvariants(Body);
 }
 

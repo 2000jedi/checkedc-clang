@@ -4655,7 +4655,7 @@ InvariantClause *Sema::ActOnInvariantClause(SourceLocation InvariantLoc, Expr *C
   SmallVector<VarDecl*, 32> vars;
   WalkExprFindVar(Cond, &vars);
 
-#if 0
+#if 1
   clang::LangOptions lo;
   std::string out_str;
   llvm::raw_string_ostream outstream(out_str);
