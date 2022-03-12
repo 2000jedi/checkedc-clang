@@ -6725,10 +6725,12 @@ void Sema::PropagateStmtInvariants(Stmt *E) {
       PropagateStmtInvariants(cast<CastExpr>(E)->getSubExpr());
       break;
     }
+    case Expr::BoundsCastExprClass:
     case Expr::CHKCBindTemporaryExprClass:
     case Expr::MemberExprClass:
     case Expr::UnaryExprOrTypeTraitExprClass:
     case Stmt::BreakStmtClass:
+    case Stmt::NullStmtClass:
     case Stmt::ReturnStmtClass:
     case Expr::DeclRefExprClass:
     case Expr::CompoundLiteralExprClass:
